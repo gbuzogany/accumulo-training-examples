@@ -174,9 +174,6 @@ public class Driver {
         case "spark":
           SparkClient.run(instanceName, zookeepers, username, password, table);
           break;
-        case "retry":
-          new ErrorHandlingExample(instanceName, zookeepers, username, password).run();
-          break;
 				default:
 					HelpFormatter formatter = new HelpFormatter();
 					formatter.printHelp("", options);

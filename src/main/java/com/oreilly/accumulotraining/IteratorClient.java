@@ -24,9 +24,8 @@ import org.apache.accumulo.core.client.security.tokens.PasswordToken;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;
 import org.apache.accumulo.core.iterators.IteratorUtil.IteratorScope;
-import org.apache.accumulo.core.iterators.LongCombiner;
-import org.apache.accumulo.core.iterators.user.BigDecimalCombiner;
 import org.apache.accumulo.core.iterators.user.BigDecimalCombiner.BigDecimalEncoder;
+import org.apache.accumulo.core.iterators.user.BigDecimalCombiner.BigDecimalSummingCombiner;
 
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVParser;
@@ -66,9 +65,12 @@ public class IteratorClient {
         System.out.println("creating table " + table);
         conn.tableOperations().create(table);
         
-        // setup iterator
-        IteratorSetting iterSetting = new IteratorSetting(10, "sum", BigDecimalCombiner.class);
-        BigDecimalCombiner.setLossyness(iterSetting, true);
+        // remove versioning iterator
+        conn.tableOperations().removeIterator(table, "vers", EnumSet.allOf(IteratorScope.class));
+        
+        // setup combining iterator
+        IteratorSetting iterSetting = new IteratorSetting(10, "sum", BigDecimalSummingCombiner.class);
+        BigDecimalSummingCombiner.setCombineAllColumns(iterSetting, true);
         
         conn.tableOperations().attachIterator(table, iterSetting);
       }
