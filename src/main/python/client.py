@@ -1,5 +1,5 @@
 import sys
-sys.path.append('/Users/aaron/training/accumulo-1.7.0/proxy/thrift/gen-py')
+sys.path.append('proxy/thrift/gen-py')
 from thrift import Thrift
 from thrift.transport import TSocket
 from thrift.transport import TTransport

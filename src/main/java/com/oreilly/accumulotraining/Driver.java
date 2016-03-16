@@ -174,6 +174,9 @@ public class Driver {
         case "spark":
           SparkClient.run(instanceName, zookeepers, username, password, table);
           break;
+        case "replicate":
+          ReplicationDataGenerator.run(instanceName, zookeepers, username, password, table);
+          break;
 				default:
 					HelpFormatter formatter = new HelpFormatter();
 					formatter.printHelp("", options);
@@ -182,7 +185,7 @@ public class Driver {
 			System.out.println(pex.getMessage());
       
 			HelpFormatter formatter = new HelpFormatter();
-			formatter.printHelp("TrainingCode [write | indexWrite | authWrite | iterWrite | read | indexRead | authRead | update | delete | mapred | spark]", options);
+			formatter.printHelp("TrainingCode [write | indexWrite | authWrite | iterWrite | read | indexRead | authRead | update | delete | mapred | spark | replicate]", options);
 		}
 	}
 }
