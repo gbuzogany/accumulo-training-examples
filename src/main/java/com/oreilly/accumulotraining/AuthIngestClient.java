@@ -9,17 +9,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.apache.accumulo.core.client.AccumuloException;
-import org.apache.accumulo.core.client.AccumuloSecurityException;
-import org.apache.accumulo.core.client.BatchWriter;
-import org.apache.accumulo.core.client.BatchWriterConfig;
-import org.apache.accumulo.core.client.Connector;
-import org.apache.accumulo.core.client.Durability;
-import org.apache.accumulo.core.client.Instance;
-import org.apache.accumulo.core.client.MutationsRejectedException;
-import org.apache.accumulo.core.client.TableExistsException;
-import org.apache.accumulo.core.client.TableNotFoundException;
-import org.apache.accumulo.core.client.ZooKeeperInstance;
+import org.apache.accumulo.core.client.*;
 import org.apache.accumulo.core.client.security.tokens.PasswordToken;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;
@@ -49,11 +39,10 @@ public class AuthIngestClient {
 			String filename) {
 		
 		try {
-			
 			System.out.println("connecting to accumulo ...");
-			Instance inst = new ZooKeeperInstance(instanceName, zookeepers);
-			System.out.println("got instance");
-			Connector conn = inst.getConnector(username, new PasswordToken(password));
+			AccumuloClient conn = Accumulo.newClient()
+					.to(instanceName, zookeepers)
+					.as(username, password).build();
 			System.out.println("got connector");
 			
 			if(!conn.tableOperations().exists(table)) {

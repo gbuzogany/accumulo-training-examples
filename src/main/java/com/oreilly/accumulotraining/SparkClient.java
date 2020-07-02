@@ -1,13 +1,12 @@
 package com.oreilly.accumulotraining;
 
 import java.io.IOException;
+import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.accumulo.core.client.AccumuloSecurityException;
-import org.apache.accumulo.core.client.ClientConfiguration;
-import org.apache.accumulo.core.client.ClientConfiguration.ClientProperty;
-import org.apache.accumulo.core.client.mapreduce.AccumuloInputFormat;
-import org.apache.accumulo.core.client.security.tokens.PasswordToken;
+
+import org.apache.accumulo.core.client.Accumulo;
+import org.apache.accumulo.hadoop.mapreduce.AccumuloInputFormat;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Value;
 import org.apache.hadoop.conf.Configuration;
@@ -32,16 +31,10 @@ public class SparkClient {
     try {
       SparkContext sc = new SparkContext(new SparkConf().setAppName("Spark Accumulo Client"));
 
-      PasswordToken passwordToken = new PasswordToken(password);
-      ClientConfiguration config = new ClientConfiguration();
-      config.setProperty(ClientProperty.INSTANCE_NAME, instanceName);
-      config.setProperty(ClientProperty.INSTANCE_ZK_HOST, zookeepers);
+      Properties props = Accumulo.newClientProperties().to(instanceName,zookeepers)
+              .as(username, password).build();
 
       Job job = Job.getInstance(new Configuration());
-
-      AccumuloInputFormat.setInputTableName(job, table);
-      AccumuloInputFormat.setConnectorInfo(job, username, passwordToken);
-      AccumuloInputFormat.setZooKeeperInstance(job, config);
 
       JavaRDD<Tuple2<Key, Value>> rdd = sc.newAPIHadoopRDD(
               job.getConfiguration(),
@@ -71,7 +64,7 @@ public class SparkClient {
         System.out.println(entry._1 + ":\t" + entry._2);
       }
 
-    } catch (AccumuloSecurityException | IOException ex) {
+    } catch (IOException ex) {
       Logger.getLogger(SparkClient.class.getName()).log(Level.SEVERE, null, ex);
     }
   }

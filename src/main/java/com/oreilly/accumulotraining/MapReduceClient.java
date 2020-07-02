@@ -1,13 +1,13 @@
 package com.oreilly.accumulotraining;
 
 import java.io.IOException;
+import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.accumulo.core.client.ClientConfiguration;
-import org.apache.accumulo.core.client.ClientConfiguration.ClientProperty;
-import org.apache.accumulo.core.client.mapreduce.AccumuloInputFormat;
-import org.apache.accumulo.core.client.mapreduce.AccumuloOutputFormat;
-import org.apache.accumulo.core.client.security.tokens.PasswordToken;
+
+import org.apache.accumulo.core.client.Accumulo;
+import org.apache.accumulo.hadoop.mapreduce.AccumuloOutputFormat;
+import org.apache.accumulo.hadoop.mapreduce.AccumuloInputFormat;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Mutation;
 import org.apache.accumulo.core.data.Value;
@@ -49,32 +49,21 @@ public class MapReduceClient implements Tool {
 
   @Override
   public int run(String[] args) throws Exception {
-
-    PasswordToken passwordToken = new PasswordToken(password);
-    ClientConfiguration config = new ClientConfiguration();
-    config.setProperty(ClientProperty.INSTANCE_NAME, instanceName);
-    config.setProperty(ClientProperty.INSTANCE_ZK_HOST, zookeepers);
+    Properties props = Accumulo.newClientProperties().to(instanceName,zookeepers)
+            .as(username, password).build();
 
     Job job = Job.getInstance(getConf());
-    
-    AccumuloInputFormat.setZooKeeperInstance(job, config);
-    AccumuloInputFormat.setConnectorInfo(job, username, passwordToken);
-    AccumuloInputFormat.setInputTableName(job, inputTable);
-    
     job.setInputFormatClass(AccumuloInputFormat.class);
+
+    AccumuloInputFormat.configure().clientProperties(props).table(inputTable).store(job);
+    AccumuloOutputFormat.configure().clientProperties(props).defaultTable(outputTable).createTables(true).store(job);
     
     job.setMapperClass(MyMapper.class);
     job.setMapOutputKeyClass(Text.class);
     job.setMapOutputValueClass(DoubleWritable.class);
     job.setReducerClass(MyReducer.class);
-
-    AccumuloOutputFormat.setZooKeeperInstance(job, config);
-    AccumuloOutputFormat.setConnectorInfo(job, username, passwordToken);
-    AccumuloOutputFormat.setDefaultTableName(job, outputTable);
-    AccumuloOutputFormat.setCreateTables(job, true);
-
     job.setOutputFormatClass(AccumuloOutputFormat.class);
-    
+
     job.waitForCompletion(true);
     
     return 0;

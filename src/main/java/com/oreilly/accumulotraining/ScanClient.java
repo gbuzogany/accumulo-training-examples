@@ -3,13 +3,8 @@ package com.oreilly.accumulotraining;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.accumulo.core.client.AccumuloException;
-import org.apache.accumulo.core.client.AccumuloSecurityException;
-import org.apache.accumulo.core.client.Connector;
-import org.apache.accumulo.core.client.Instance;
-import org.apache.accumulo.core.client.Scanner;
-import org.apache.accumulo.core.client.TableNotFoundException;
-import org.apache.accumulo.core.client.ZooKeeperInstance;
+
+import org.apache.accumulo.core.client.*;
 import org.apache.accumulo.core.client.security.tokens.PasswordToken;
 import org.apache.accumulo.core.data.Key;
 import org.apache.accumulo.core.data.Range;
@@ -32,10 +27,9 @@ public class ScanClient {
 			String columnQualifier) {
 		
 		try {
-		
-			Instance inst = new ZooKeeperInstance(instanceName, zookeepers);
-			Connector conn = inst.getConnector(username, new PasswordToken(password));
-			
+			AccumuloClient conn = Accumulo.newClient()
+					.to(instanceName, zookeepers)
+					.as(username, password).build();
 			Scanner scanner = conn.createScanner(table, Authorizations.EMPTY);
 			
 			if(row != null) {
@@ -60,7 +54,7 @@ public class ScanClient {
 			}
 			
 		
-		} catch (AccumuloException | AccumuloSecurityException | TableNotFoundException ex) {
+		} catch (TableNotFoundException ex) {
 			logger.log(Level.SEVERE, ex.getLocalizedMessage(), ex);
 		}
 	}

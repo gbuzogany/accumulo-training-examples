@@ -3,15 +3,8 @@ package com.oreilly.accumulotraining;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.apache.accumulo.core.client.AccumuloException;
-import org.apache.accumulo.core.client.AccumuloSecurityException;
-import org.apache.accumulo.core.client.BatchWriter;
-import org.apache.accumulo.core.client.BatchWriterConfig;
-import org.apache.accumulo.core.client.Connector;
-import org.apache.accumulo.core.client.Durability;
-import org.apache.accumulo.core.client.Instance;
-import org.apache.accumulo.core.client.TableNotFoundException;
-import org.apache.accumulo.core.client.ZooKeeperInstance;
+
+import org.apache.accumulo.core.client.*;
 import org.apache.accumulo.core.client.security.tokens.PasswordToken;
 import org.apache.accumulo.core.data.Mutation;
 
@@ -30,11 +23,10 @@ public class UpdateDeleteClient {
 			boolean delete) {
 		
 		try {
-			
-			Instance inst = new ZooKeeperInstance(instanceName, zookeepers);
-			
-			Connector conn = inst.getConnector(username, new PasswordToken(password));
-			
+
+			AccumuloClient conn = Accumulo.newClient()
+					.to(instanceName, zookeepers)
+					.as(username, password).build();
 			BatchWriterConfig config = new BatchWriterConfig();
 			config.setMaxLatency(1, TimeUnit.SECONDS);
 			config.setMaxMemory(10240);
@@ -54,7 +46,7 @@ public class UpdateDeleteClient {
 			writer.addMutation(m);
 			writer.close();
 		}
-		catch (AccumuloException | AccumuloSecurityException | TableNotFoundException ex) {
+		catch (MutationsRejectedException | TableNotFoundException ex) {
 			Logger.getLogger(IngestClient.class.getName()).log(Level.SEVERE, null, ex);
 		}
 	}		
